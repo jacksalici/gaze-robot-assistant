@@ -7,3 +7,4 @@ def generate_aruco_marker(id, size, save_path):
     cv2.imwrite(save_path, img)
 
 generate_aruco_marker(42, 200, 'aruco_marker_42.png')
+generate_aruco_marker(1, 200, 'aruco_marker_01.png')
