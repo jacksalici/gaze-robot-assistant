@@ -69,7 +69,6 @@ def main():
             # Draw a square around detected markers
             frame = cv2.aruco.drawDetectedMarkers(frame, corners, marker_ids)
 
-            trash = []
             rvecs = []
             tvecs = []
 
@@ -83,8 +82,6 @@ def main():
                     rvecs.append(R)
                     tvecs.append(t)
 
-                    print(R)
-
                     rotation_matrix = np.eye(4)
                     rotation_matrix[0:3, 0:3] = cv2.Rodrigues(np.array(rvecs[i]))[0]
                     r = Rotation.from_matrix(rotation_matrix[0:3, 0:3])
@@ -96,12 +93,11 @@ def main():
                     pitch_y = math.degrees(pitch_y)
                     yaw_z = math.degrees(yaw_z)
 
-                    print("transform_translation: {}".format(tvecs[i]))
-
-                    print("roll_x: {}".format(roll_x))
-                    print("pitch_y: {}".format(pitch_y))
-                    print("yaw_z: {}".format(yaw_z))
-                    print()
+                    print(f"""MARKER {marker_id}
+Roll Pitch Yaw: {roll_x, pitch_y, yaw_z}
+X Y Z: {tvecs[i][0][0], tvecs[i][1][0], tvecs[i][2][0]}
+""")
+                    
 
                     frame = cv2.drawFrameAxes(
                         frame,
@@ -114,7 +110,7 @@ def main():
 
         cv2.imshow("frame", frame)
 
-        if cv2.waitKey(1) & 0xFF == ord("q"):
+        if cv2.waitKey() & 0xFF == ord("q"):
             break
 
     cv2.destroyAllWindows()
