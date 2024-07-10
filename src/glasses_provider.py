@@ -5,9 +5,14 @@ from aria_glasses_utils.BetterEyeGaze import BetterEyeGaze
 
 import aria.sdk as aria
 
+from detection_and_pose_estimation import DetectAndPoseEstimator
+
 def main():
     import tomllib
     config = tomllib.load( open('config.toml', 'rb'))
+    
+    detectAndPoseEstimator = DetectAndPoseEstimator()
+
 
     
 
@@ -29,12 +34,13 @@ def main():
             yaw, pitch, 1
         )
 
+        img = detectAndPoseEstimator.do(img)
         
-        cv2.circle(img, gaze_center_in_pixels2, 5, (255, 255, 0), 2)
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         cv2.imshow("test", img)
 
+        cv2.waitKey()
         if quit_keypress():
             break
 
