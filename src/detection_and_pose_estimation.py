@@ -29,40 +29,39 @@ def euler_from_quaternion(x, y, z, w):
     return roll_x, pitch_y, yaw_z
 
 
-def main():
-    aruco_dict = cv2.aruco.DICT_6X6_250
-    camera_calibration_parameters_filename = "calibration.yaml"
+class DetectAndPoseEstimator():
+    def __init__(self, camera_calibration_parameters_filename = "calibration.yaml") -> None:
+        
+        aruco_dict = cv2.aruco.DICT_6X6_250
+        
 
-    cv_file = cv2.FileStorage(
-        camera_calibration_parameters_filename, cv2.FILE_STORAGE_READ
-    )
-    camera_matrix = cv_file.getNode("K").mat()
-    camera_distortion = cv_file.getNode("D").mat()
-    cv_file.release()
+        cv_file = cv2.FileStorage(
+            camera_calibration_parameters_filename, cv2.FILE_STORAGE_READ
+        )
+        self.camera_matrix = cv_file.getNode("K").mat()
+        self.camera_distortion = cv_file.getNode("D").mat()
+        cv_file.release()
 
-    parameters = cv2.aruco.DetectorParameters()
+        parameters = cv2.aruco.DetectorParameters()
 
-    detector = cv2.aruco.ArucoDetector(
-        cv2.aruco.getPredefinedDictionary(aruco_dict), parameters
-    )
+        self.detector = cv2.aruco.ArucoDetector(
+            cv2.aruco.getPredefinedDictionary(aruco_dict), parameters
+        )
 
-    markerLength = 0.0706
+        self.markerLength = 0.0706
 
-    objPoints = np.array(
-        [
-            [-markerLength / 2, markerLength / 2, 0],
-            [markerLength / 2, markerLength / 2, 0],
-            [markerLength / 2, -markerLength / 2, 0],
-            [-markerLength / 2, -markerLength / 2, 0],
-        ],
-        dtype=np.float32,
-    )
+        self.objPoints = np.array(
+            [
+                [-self.markerLength / 2, self.markerLength / 2, 0],
+                [self.markerLength / 2, self.markerLength / 2, 0],
+                [self.markerLength / 2, -self.markerLength / 2, 0],
+                [-self.markerLength / 2, -self.markerLength / 2, 0],
+            ],
+            dtype=np.float32,
+        )
 
-    while True:
-
-        frame = cv2.imread("imgs/photo_example.jpg")
-
-        (corners, marker_ids, _) = detector.detectMarkers(frame)
+    def do(self, frame):
+        (corners, marker_ids, _) = self.detector.detectMarkers(frame)
 
         if marker_ids is not None:
 
@@ -75,7 +74,7 @@ def main():
             for i, marker_id in enumerate(marker_ids):
 
                 success, R, t = cv2.solvePnP(
-                    objPoints, corners[i], camera_matrix, camera_distortion
+                    self.objPoints, corners[i], self.camera_matrix, self.camera_distortion
                 )
 
                 if success:
@@ -101,20 +100,25 @@ X Y Z: {tvecs[i][0][0], tvecs[i][1][0], tvecs[i][2][0]}
 
                     frame = cv2.drawFrameAxes(
                         frame,
-                        camera_matrix,
-                        camera_distortion,
+                        self.camera_matrix,
+                        self.camera_distortion,
                         rvecs[i],
                         tvecs[i],
                         0.05,
                     )
+        return frame
 
-        cv2.imshow("frame", frame)
 
-        if cv2.waitKey() & 0xFF == ord("q"):
-            break
-
-    cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
-    main()
+    detectAndPoseEstimator = DetectAndPoseEstimator()
+    frame = cv2.imread("imgs/photo_example.jpg")
+    frame = detectAndPoseEstimator.do(frame)
+    
+    cv2.imshow("frame", frame)
+
+    cv2.waitKey()
+
+    cv2.destroyAllWindows()
+
