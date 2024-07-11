@@ -30,17 +30,12 @@ def euler_from_quaternion(x, y, z, w):
 
 
 class DetectAndPoseEstimator():
-    def __init__(self, camera_calibration_parameters_filename = "calibration.yaml") -> None:
+    def __init__(self, K, D) -> None:
         
         aruco_dict = cv2.aruco.DICT_6X6_250
         
-
-        cv_file = cv2.FileStorage(
-            camera_calibration_parameters_filename, cv2.FILE_STORAGE_READ
-        )
-        self.camera_matrix = cv_file.getNode("K").mat()
-        self.camera_distortion = cv_file.getNode("D").mat()
-        cv_file.release()
+        self.camera_matrix = K
+        self.camera_distortion = D
 
         parameters = cv2.aruco.DetectorParameters()
 
@@ -60,7 +55,7 @@ class DetectAndPoseEstimator():
             dtype=np.float32,
         )
 
-    def do(self, frame):
+    def solve(self, frame):
         (corners, marker_ids, _) = self.detector.detectMarkers(frame)
 
         if marker_ids is not None:
@@ -112,9 +107,13 @@ X Y Z: {tvecs[i][0][0], tvecs[i][1][0], tvecs[i][2][0]}
 
 
 if __name__ == "__main__":
-    detectAndPoseEstimator = DetectAndPoseEstimator()
+    
+    K = np.array([[800, 0, 665], [0, 800, 400], [0, 0, 1]], dtype=np.float32)
+    D = np.array([[0, 0, 0, 0, 0]], dtype=np.float32)
+        
+    detectAndPoseEstimator = DetectAndPoseEstimator(K, D)
     frame = cv2.imread("imgs/photo_example.jpg")
-    frame = detectAndPoseEstimator.do(frame)
+    frame = detectAndPoseEstimator.solve(frame)
     
     cv2.imshow("frame", frame)
 
