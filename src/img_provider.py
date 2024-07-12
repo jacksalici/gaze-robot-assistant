@@ -5,6 +5,11 @@ from common import inv_transformation_matrix
 
 ROBOT_MARKER_ID = 1
 
+def resize_image(image, max_width, max_height):
+    h, w = image.shape[:2]
+    scale = min(max_width / w, max_height / h)
+    return cv2.resize(image, (int(w * scale), int(h * scale)))
+
 if __name__ == "__main__":
     config = tomllib.load(open("config.toml", "rb"))
 
@@ -30,7 +35,8 @@ if __name__ == "__main__":
         frame = detectAndPoseEstimator.drawAllFrames(frame, corners, marker_ids, rvecs, tvecs)
         
         
-        robot_marker_index = marker_ids.flatten().tolist().index(ROBOT_MARKER_ID)
+        #robot_marker_index = marker_ids.flatten().tolist().index(ROBOT_MARKER_ID)
+        robot_marker_index = np.where(marker_ids.flatten() == ROBOT_MARKER_ID)[0][0]
         robot_rvec = rvecs[robot_marker_index]
         
         observed_marker_index = 0
@@ -50,12 +56,16 @@ if __name__ == "__main__":
                 distance_observed_marker = distance_marker_current
             
             
-        print(E_robot2glasses)
-        print(marker_ids[observed_marker_index])
+        #print(E_robot2glasses)
+        #print(marker_ids[observed_marker_index])
             
         
         frame = cv2.circle(frame, npz_file["gaze_center_in_rgb_pixels"], 2, (255, 255, 0), 2)
         
+        screen_width, screen_height = 1920, 1080  # Example screen resolution
+        h, w = frame.shape[:2]
+        if w > screen_width or h > screen_height:
+            frame = resize_image(frame, screen_width, screen_height)
         cv2.imshow("frame", frame)
         cv2.waitKey()
 
