@@ -55,7 +55,7 @@ class DetectAndPoseEstimator():
             dtype=np.float32,
         )
 
-    def solve(self, frame):
+    def solve(self, frame, verbose=False):
         (corners, marker_ids, _) = self.detector.detectMarkers(frame)
 
         if marker_ids is not None:
@@ -73,13 +73,15 @@ class DetectAndPoseEstimator():
                     rvecs.append(R)
                     tvecs.append(t)
                     
-                    roll_x, pitch_y, yaw_z = self.rvec2RPY(rvecs[i])
+                    if (verbose):
+                    
+                        roll_x, pitch_y, yaw_z = self.rvec2RPY(rvecs[i])
 
-                    roll_x = math.degrees(roll_x)
-                    pitch_y = math.degrees(pitch_y)
-                    yaw_z = math.degrees(yaw_z)
+                        roll_x = math.degrees(roll_x)
+                        pitch_y = math.degrees(pitch_y)
+                        yaw_z = math.degrees(yaw_z)
 
-                    print(f"""MARKER {marker_id}
+                        print(f"""MARKER {marker_id}
 Roll Pitch Yaw: {roll_x, pitch_y, yaw_z}
 X Y Z: {tvecs[i][0][0], tvecs[i][1][0], tvecs[i][2][0]}
 """)
