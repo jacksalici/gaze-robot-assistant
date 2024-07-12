@@ -9,7 +9,8 @@ from aria_glasses_utils.BetterEyeGaze import BetterEyeGaze
 import aria.sdk as aria
 
 from detection_and_pose_estimation import DetectAndPoseEstimator
-
+import cv2
+import numpy as np
 
 def main():
     import tomllib
