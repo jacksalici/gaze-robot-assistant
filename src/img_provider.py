@@ -24,7 +24,11 @@ if __name__ == "__main__":
     
         detectAndPoseEstimator = DetectAndPoseEstimator(K, D)
         frame = cv2.imread(os.path.join(imgs_folder, img_file))
-        frame = detectAndPoseEstimator.solve(frame)
+        
+        corners, marker_ids, rvecs, tvecs = detectAndPoseEstimator.solve(frame)
+        frame = detectAndPoseEstimator.drawAllFrames(frame, corners, marker_ids, rvecs, tvecs)
+        
+        frame = cv2.circle(frame, npz_file["gaze_center_in_rgb_pixels"], 2, (255, 255, 255))
         
         cv2.imshow("frame", frame)
         cv2.waitKey()

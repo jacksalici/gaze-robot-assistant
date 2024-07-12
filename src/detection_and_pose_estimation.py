@@ -59,10 +59,7 @@ class DetectAndPoseEstimator():
         (corners, marker_ids, _) = self.detector.detectMarkers(frame)
 
         if marker_ids is not None:
-
-            # Draw a square around detected markers
-            frame = cv2.aruco.drawDetectedMarkers(frame, corners, marker_ids)
-
+            
             rvecs = []
             tvecs = []
 
@@ -75,13 +72,8 @@ class DetectAndPoseEstimator():
                 if success:
                     rvecs.append(R)
                     tvecs.append(t)
-
-                    rotation_matrix = np.eye(4)
-                    rotation_matrix[0:3, 0:3] = cv2.Rodrigues(np.array(rvecs[i]))[0]
-                    r = Rotation.from_matrix(rotation_matrix[0:3, 0:3])
-                    quat = r.as_quat()
-
-                    roll_x, pitch_y, yaw_z = euler_from_quaternion(*quat)
+                    
+                    roll_x, pitch_y, yaw_z = self.rvec2RPY(rvecs[i])
 
                     roll_x = math.degrees(roll_x)
                     pitch_y = math.degrees(pitch_y)
@@ -91,18 +83,38 @@ class DetectAndPoseEstimator():
 Roll Pitch Yaw: {roll_x, pitch_y, yaw_z}
 X Y Z: {tvecs[i][0][0], tvecs[i][1][0], tvecs[i][2][0]}
 """)
-                    
 
-                    frame = cv2.drawFrameAxes(
+        return corners, marker_ids, rvecs, tvecs
+
+    def rvec2RPY(self, rvec):
+        rotation_matrix = np.eye(4)
+        rotation_matrix[0:3, 0:3] = cv2.Rodrigues(np.array(rvec))[0]
+        r = Rotation.from_matrix(rotation_matrix[0:3, 0:3])
+        quat = r.as_quat()
+
+        roll_x, pitch_y, yaw_z = euler_from_quaternion(*quat)
+        
+        return roll_x, pitch_y, yaw_z
+    
+    def drawFrame(self, frame, rvec, tvec, size = 0.05):
+        return cv2.drawFrameAxes(
                         frame,
                         self.camera_matrix,
                         self.camera_distortion,
-                        rvecs[i],
-                        tvecs[i],
-                        0.05,
+                        rvec,
+                        tvec,
+                        size
                     )
+    
+    def drawAllFrames(self, frame, corners, marker_ids, rvecs, tvecs):
+        frame = cv2.aruco.drawDetectedMarkers(frame, corners, marker_ids)
+        for i, marker_id in enumerate(marker_ids):
+            frame = self.drawFrame(frame, rvecs[i], tvecs[i])
         return frame
+        
 
+        
+        
 def resize_image(image, max_width, max_height):
     h, w = image.shape[:2]
     scale = min(max_width / w, max_height / h)
