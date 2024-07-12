@@ -1,2 +1,4 @@
 vrs_path = "path/to/file.vrs"
+imgs_folder = "path/to/imgs"
+gaze_output_folder = "path/to/gaze_output"
 aruco_export_path = "imgs"
