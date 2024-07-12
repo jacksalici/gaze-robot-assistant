@@ -103,18 +103,26 @@ X Y Z: {tvecs[i][0][0], tvecs[i][1][0], tvecs[i][2][0]}
                     )
         return frame
 
-
-
+def resize_image(image, max_width, max_height):
+    h, w = image.shape[:2]
+    scale = min(max_width / w, max_height / h)
+    return cv2.resize(image, (int(w * scale), int(h * scale)))
 
 if __name__ == "__main__":
     
     K = np.array([[800, 0, 665], [0, 800, 400], [0, 0, 1]], dtype=np.float32)
     D = np.array([[0, 0, 0, 0, 0]], dtype=np.float32)
-        
+
+    screen_width = 1920  
+    screen_height = 1080  
+
     detectAndPoseEstimator = DetectAndPoseEstimator(K, D)
     frame = cv2.imread("imgs/photo_example.jpg")
     frame = detectAndPoseEstimator.solve(frame)
     
+    if frame.shape[1] > 1920 or frame.shape[0] > 1020:
+        frame = resize_image(frame, screen_width/2, screen_height/2)
+
     cv2.imshow("frame", frame)
 
     cv2.waitKey()
