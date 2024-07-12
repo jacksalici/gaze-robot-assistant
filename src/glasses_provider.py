@@ -1,4 +1,4 @@
-from aria_glasses_utils.utils import *
+from aria_glasses_utils.common import *
 from aria_glasses_utils.BetterAriaProvider import (
     Streams,
     BetterAriaProvider,
@@ -51,7 +51,8 @@ def main():
             yaw, pitch, 1
         )
 
-        img = detectAndPoseEstimator.solve(img)
+        corners, marker_ids, rvecs, tvecs = detectAndPoseEstimator.solve(img)
+        img = detectAndPoseEstimator.drawAllFrames(img, corners, marker_ids, rvecs, tvecs)
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         cv2.imshow("test", img)
