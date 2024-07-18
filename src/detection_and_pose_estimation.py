@@ -56,12 +56,14 @@ class DetectAndPoseEstimator():
         )
 
     def solve(self, frame, verbose=False):
+        corners, marker_ids = [], []
+        
         (corners, marker_ids, _) = self.detector.detectMarkers(frame)
 
+        rvecs = []
+        tvecs = []
+        
         if marker_ids is not None:
-            
-            rvecs = []
-            tvecs = []
 
             for i, marker_id in enumerate(marker_ids):
 

@@ -17,10 +17,9 @@ def main():
 
     config = tomllib.load(open("config.toml", "rb"))
 
-    vrs_file = config["vrs_path"]
-    cv2.namedWindow("test", cv2.WINDOW_NORMAL)
+    cv2.namedWindow("RGB", cv2.WINDOW_NORMAL)
 
-    provider = BetterAriaProvider(live=False, vrs=vrs_file)
+    provider = BetterAriaProvider(live=True)
 
     custom_calibrations, device_calibration = provider.get_calibration()
 
@@ -40,26 +39,34 @@ def main():
         rotate_image=True,
         init_inference=True,
     )
+    
+    last_img = [[0, 0], [0, 0]]
+    
+    with ctrl_c_handler() as ctrl_c:
+        while not (quit_keypress() or ctrl_c):
+            img, success = provider.get_frame(Streams.RGB)
+            if success:
+                last_img = img
+                
+                
+            img_et, success = provider.get_frame(Streams.ET)
+            if success:
+                yaw, pitch = eye_gaze.predict(img_et)
 
-    for time in provider.get_time_range(100_000_000):
-        img, _ = provider.get_frame(Streams.RGB, time_ns=time)
-        img_et, _ = provider.get_frame(Streams.ET, time_ns=time)
+                gaze_center_in_cpf2, gaze_center_in_pixels2 = eye_gaze.get_gaze_center_raw(
+                    yaw, pitch, 1
+                )
+                cv2.circle(last_img, gaze_center_in_pixels2, 5, (255, 255, 0), 2)
 
-        yaw, pitch = eye_gaze.predict(img_et)
-
-        gaze_center_in_cpf2, gaze_center_in_pixels2 = eye_gaze.get_gaze_center_raw(
-            yaw, pitch, 1
-        )
-
-        corners, marker_ids, rvecs, tvecs = detectAndPoseEstimator.solve(img)
-        img = detectAndPoseEstimator.drawAllFrames(img, corners, marker_ids, rvecs, tvecs)
-
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        cv2.imshow("test", img)
-
-        cv2.waitKey()
-        if quit_keypress():
-            break
+            try:
+                corners, marker_ids, rvecs, tvecs = detectAndPoseEstimator.solve(last_img)
+                last_img = detectAndPoseEstimator.drawAllFrames(last_img, corners, marker_ids, rvecs, tvecs)
+            except:
+                print("MARKER NOT PRINT")
+                    
+            cv2.imshow('RGB', cv2.cvtColor(last_img, cv2.COLOR_RGB2BGR))
+        
+    provider.unsubscribe()
 
 
 if __name__ == "__main__":
