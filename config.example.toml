@@ -1,4 +1,15 @@
+## OFFLINE COMPUTATION PARAMS
 vrs_path = "path/to/file.vrs"
 imgs_folder = "path/to/imgs"
 gaze_output_folder = "path/to/gaze_output"
+
+## ARUCO GENERATION PARAMS
 aruco_export_path = "imgs"
+
+## GAZE CONFIG
+gaze_time_min = 5 #seconds to wait gazing a point to trigger the cobot
+position_threshold = 0.1 #meters of threshold for a box to be the same 
+
+## SCENE SETTING CONFIG
+n_boxes = 4
+robot_aruco_id = 249

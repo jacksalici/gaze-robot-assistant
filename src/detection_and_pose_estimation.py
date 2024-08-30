@@ -6,12 +6,9 @@ import sys
 
 
 def euler_from_quaternion(x, y, z, w):
-    # TODO please double check this
     """
-    Convert a quaternion into euler angles (roll, pitch, yaw)
-    roll is rotation around x in radians (counterclockwise)
-    pitch is rotation around y in radians (counterclockwise)
-    yaw is rotation around z in radians (counterclockwise)
+    Convert a quaternion into euler angles; returns **roll** is rotation around *x*,
+    **pitch** is rotation around *y*, and **yaw** is rotation around *z*. [rad, counterclockwise]
     """
     t0 = +2.0 * (w * x + y * z)
     t1 = +1.0 - 2.0 * (x * x + y * y)
@@ -115,9 +112,7 @@ X Y Z: {tvecs[i][0][0], tvecs[i][1][0], tvecs[i][2][0]}
         for i, marker_id in enumerate(marker_ids):
             frame = self.drawFrame(frame, rvecs[i], tvecs[i])
         return frame
-        
 
-        
         
 def resize_image(image, max_width, max_height):
     h, w = image.shape[:2]
@@ -126,7 +121,7 @@ def resize_image(image, max_width, max_height):
 
 if __name__ == "__main__":
     
-    K = np.array([[800, 0, 665], [0, 800, 400], [0, 0, 1]], dtype=np.float32)
+    K = np.array([[800, 0, 665], [0, 800, 400], [0, 0, 1]], dtype=np.float32) #intrisic of Google Pixel
     D = np.array([[0, 0, 0, 0, 0]], dtype=np.float32)
 
     screen_width = 1920  
@@ -134,12 +129,9 @@ if __name__ == "__main__":
 
     detectAndPoseEstimator = DetectAndPoseEstimator(K, D)
     frame = cv2.imread("imgs/photo_example.jpg")
-    frame = detectAndPoseEstimator.solve(frame)
+    corners, marker_ids, rvecs, tvecs = detectAndPoseEstimator.solve(frame)
     
-    if frame.shape[1] > 1920 or frame.shape[0] > 1020:
-        frame = resize_image(frame, screen_width/2, screen_height/2)
-
-    cv2.imshow("frame", frame)
+    cv2.imshow("frame", detectAndPoseEstimator.drawAllFrames(frame, corners, marker_ids, rvecs, tvecs))
 
     cv2.waitKey()
 

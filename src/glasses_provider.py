@@ -12,9 +12,10 @@ from detection_and_pose_estimation import DetectAndPoseEstimator
 import cv2
 import numpy as np
 
-def main():
-    import tomllib
+import tomllib
+import time
 
+def main():
     config = tomllib.load(open("config.toml", "rb"))
 
     cv2.namedWindow("RGB", cv2.WINDOW_NORMAL)
@@ -48,21 +49,23 @@ def main():
             if success:
                 last_img = img
                 
+            try:
+                corners, marker_ids, rvecs, tvecs = detectAndPoseEstimator.solve(last_img)
+                last_img = detectAndPoseEstimator.drawAllFrames(last_img, corners, marker_ids, rvecs, tvecs)    
+                
+            except:
+                print("MARKER NOT PRINT")
+                
                 
             img_et, success = provider.get_frame(Streams.ET)
             if success:
                 yaw, pitch = eye_gaze.predict(img_et)
 
-                gaze_center_in_cpf2, gaze_center_in_pixels2 = eye_gaze.get_gaze_center_raw(
+                gaze_center_in_cpf, gaze_center_in_pixels = eye_gaze.get_gaze_center_raw(
                     yaw, pitch, 1
                 )
-                cv2.circle(last_img, gaze_center_in_pixels2, 5, (255, 255, 0), 2)
-
-            try:
-                corners, marker_ids, rvecs, tvecs = detectAndPoseEstimator.solve(last_img)
-                last_img = detectAndPoseEstimator.drawAllFrames(last_img, corners, marker_ids, rvecs, tvecs)
-            except:
-                print("MARKER NOT PRINT")
+                cv2.circle(last_img, gaze_center_in_pixels, 5, (255, 255, 0), 2)
+           
                     
             cv2.imshow('RGB', cv2.cvtColor(last_img, cv2.COLOR_RGB2BGR))
         
