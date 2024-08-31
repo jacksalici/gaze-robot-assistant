@@ -40,7 +40,10 @@ class DetectAndPoseEstimator():
             cv2.aruco.getPredefinedDictionary(aruco_dict), parameters
         )
 
-        self.markerLength = 0.0706
+        import tomllib
+        config = tomllib.load(open("config.toml", "rb"))
+
+        self.markerLength = config["marker_length"]
 
         self.objPoints = np.array(
             [
@@ -83,7 +86,9 @@ class DetectAndPoseEstimator():
                         print(f"""MARKER {marker_id}
 Roll Pitch Yaw: {roll_x, pitch_y, yaw_z}
 X Y Z: {tvecs[i][0][0], tvecs[i][1][0], tvecs[i][2][0]}
-""")
+""")    
+        else:
+            corners, marker_ids = [], []
 
         return corners, marker_ids, rvecs, tvecs
 
