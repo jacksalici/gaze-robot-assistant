@@ -9,7 +9,11 @@ aruco_export_path = "imgs"
 ## GAZE CONFIG
 gaze_time_min = 5 #seconds to wait gazing a point to trigger the cobot
 position_threshold = 0.1 #meters of threshold for a box to be the same 
+gaze_depth = 1 #meters
 
 ## SCENE SETTING CONFIG
 n_boxes = 4
 robot_aruco_id = 249
+marker_lenght = 0.0706
+
+server_ip = "0.0.0.0"
