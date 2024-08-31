@@ -20,6 +20,11 @@ import matplotlib.pyplot as plt
 
 
 def main():
+    
+    ################################
+    ##### INIT ARIA and SOCKET #####
+    ################################
+    
     BOX_POSITION_SAVED = False
 
     config = tomllib.load(open("config.toml", "rb"))
@@ -62,12 +67,16 @@ def main():
     ax.set_xlim(-1, +1)
     ax.set_ylim(-0.6, +0.6)
     
+    #####################
+    ##### MAIN LOOP #####
+    #####################
+    
     with ctrl_c_handler() as ctrl_c:
         while not (quit_keypress() or ctrl_c):
             
             img, success = provider.get_frame(Streams.RGB)
             
-            if success:
+            if success: #when an img rgb is captured
                 last_img = img
                     
                 corners, marker_ids, rvecs, tvecs = detectAndPoseEstimator.solve(last_img)
@@ -77,7 +86,11 @@ def main():
                 
                 
                 last_img = detectAndPoseEstimator.drawAllFrames(last_img, corners, marker_ids, rvecs, tvecs)
-                            
+                
+                #################################################################################
+                ##### generate once the box positions, update every time the robot position #####
+                #################################################################################
+                
                 if len(marker_ids) == config["n_boxes"] and BOX_POSITION_SAVED == False:
                     boxes, cobot = generateBoxes(marker_ids, config["robot_aruco_id"], rvecs, tvecs)
                     BOX_POSITION_SAVED = True
@@ -88,8 +101,8 @@ def main():
                     
 
                 
-            img_et, success2 = provider.get_frame(Streams.ET, rotated=False, undistorted=False)
-            if success2:
+            img_et, et_success = provider.get_frame(Streams.ET, rotated=False, undistorted=False)
+            if et_success: #when an et is captured
                 yaw, pitch = eye_gaze.predict(img_et)
                 
                 gaze_center_in_cpf, gaze_center_in_pixels = eye_gaze.get_gaze_center_raw(
@@ -104,6 +117,11 @@ def main():
                     
             
             if cobot:
+                
+                ##########################
+                ##### 2D sym PLOTTER #####
+                ##########################
+                
                 ax.clear() 
                 ax.set_xlim(-1, +1)
                 ax.set_ylim(-1, +1)
@@ -119,10 +137,14 @@ def main():
                 glasses_position = cobot.trasformInRobotFrame(np.array([0,0,0]))
                 ax.scatter(glasses_position[0], glasses_position[1], marker='o', color='red') 
             
-                if success2:
+                if et_success:
                     gaze_center_in_robot_frame = cobot.trasformInRobotFrame(gaze_center_in_rgb_frame)
                     ax.scatter(gaze_center_in_robot_frame[0], gaze_center_in_robot_frame[1], marker='x', color='red') 
                     
+                    ##########################################
+                    ##### check which box is being gazed #####
+                    ##########################################
+                            
                     for id, box in boxes.items():
                         print(box.isGazed(gaze_center_in_robot_frame))   
             
