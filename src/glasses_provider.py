@@ -17,7 +17,7 @@ import time
 
 from common import *
 import matplotlib.pyplot as plt
-
+from socket_com import Client
 
 def main():
     
@@ -61,6 +61,8 @@ def main():
     boxes = {}
     cobot = None
     
+    socket_client = Client(config["server_ip"])
+    
     plt.ion()
     fig, ax = plt.subplots()
 
@@ -91,7 +93,7 @@ def main():
                 ##### generate once the box positions, update every time the robot position #####
                 #################################################################################
                 
-                if len(marker_ids) == config["n_boxes"] and BOX_POSITION_SAVED == False:
+                if len(marker_ids) - 1 == config["n_boxes"] and BOX_POSITION_SAVED == False: # when all the markers (the boxes plus the cobot's one) are seen initialize the boxes objects
                     boxes, cobot = generateBoxes(marker_ids, config["robot_aruco_id"], rvecs, tvecs)
                     BOX_POSITION_SAVED = True
                 elif BOX_POSITION_SAVED:
@@ -146,8 +148,10 @@ def main():
                     ##########################################
                             
                     for id, box in boxes.items():
-                        print(box.isGazed(gaze_center_in_robot_frame))   
-            
+                        trigger = box.isGazed(gaze_center_in_robot_frame)
+                        
+                        if trigger:
+                            socket_client.send_message(id)            
             plt.draw()
 
             try:

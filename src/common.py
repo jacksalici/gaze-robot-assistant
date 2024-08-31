@@ -112,3 +112,23 @@ def updateCobot(cobot: Cobot, marker_ids, rvecs, tvecs):
             )
            
             
+from dataclasses import dataclass, asdict, make_dataclass
+import json
+from typing import List
+
+@dataclass
+class CobotSocketMessage:
+    init: bool
+    trigger_robot: bool
+    target_position: List[float]
+    glasses_position: List[float]
+    boxes_position: List[List[float]]
+    
+def dumps_CobotSocketMessage(msg: CobotSocketMessage) -> str:
+    return json.dumps(asdict(msg))
+
+def load_CobotSocketMessage(msg: str) -> CobotSocketMessage:
+    my_dict = json.loads(msg)
+    return make_dataclass(
+    "CobotSocketMessage", ((k, type(v)) for k, v in my_dict.items())
+)(**my_dict)
