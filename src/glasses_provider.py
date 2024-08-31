@@ -70,36 +70,23 @@ def main():
             if success:
                 last_img = img
                     
-                if True:
-                    corners, marker_ids, rvecs, tvecs = detectAndPoseEstimator.solve(last_img)
-                    
-                    if len(marker_ids)== 0:
-                        continue
-                    
-                    
-                    last_img = detectAndPoseEstimator.drawAllFrames(last_img, corners, marker_ids, rvecs, tvecs)
-                    ax.clear()             
-                    if len(marker_ids) == config["n_boxes"] and BOX_POSITION_SAVED == False:
-                        boxes, cobot = generateBoxes(marker_ids, config["robot_aruco_id"], rvecs, tvecs)
-                        BOX_POSITION_SAVED = True
-                    else:                                   
-                        for id, box in boxes.items():
-                            p = box.getPositionInRobotFrame()
-                            ax.scatter(p[0], p[1], marker='s', color='blue')
-                            ax.text(p[0] + 0.005, p[1] + 0.005, f'{id}', fontsize=12, color='blue')  
+                corners, marker_ids, rvecs, tvecs = detectAndPoseEstimator.solve(last_img)
+                
+                if len(marker_ids)== 0:
+                    continue
+                
+                
+                last_img = detectAndPoseEstimator.drawAllFrames(last_img, corners, marker_ids, rvecs, tvecs)
                             
-                        cobot_position = cobot.getPositionInRobotFrame()
-                        ax.scatter(cobot_position[0], cobot_position[1], marker='^', color='black')
-
-                        glasses_position = cobot.trasformInRobotFrame(np.array([0,0,0]))
-                        ax.scatter(glasses_position[0], glasses_position[1], marker='o', color='red') 
-
-                        
-
-                else:#except Exception as e:
-                    print("ERROR: Error during markers")
-                    print(e)
+                if len(marker_ids) == config["n_boxes"] and BOX_POSITION_SAVED == False:
+                    boxes, cobot = generateBoxes(marker_ids, config["robot_aruco_id"], rvecs, tvecs)
+                    BOX_POSITION_SAVED = True
+                elif BOX_POSITION_SAVED:
+                    updateCobot(cobot, marker_ids, rvecs, tvecs)
                     
+                                                     
+                    
+
                 
             img_et, success2 = provider.get_frame(Streams.ET, rotated=False, undistorted=False)
             if success2:
@@ -114,10 +101,31 @@ def main():
                     @ np.append(gaze_center_in_cpf, [1])
                 )[:3]
                 
-                if cobot:
+                    
+            
+            if cobot:
+                ax.clear() 
+                ax.set_xlim(-1, +1)
+                ax.set_ylim(-1, +1)
+    
+    
+                for id, box in boxes.items():
+                        p = box.getPositionInRobotFrame()
+                        ax.scatter(p[0], p[1], marker='s', color='blue')
+                        ax.text(p[0] + 0.005, p[1] + 0.005, f'{id}', fontsize=12, color='blue')  
+                        
+                cobot_position = cobot.getPositionInRobotFrame()
+                ax.scatter(cobot_position[0], cobot_position[1], marker='^', color='black')
+                glasses_position = cobot.trasformInRobotFrame(np.array([0,0,0]))
+                ax.scatter(glasses_position[0], glasses_position[1], marker='o', color='red') 
+            
+                if success2:
                     gaze_center_in_robot_frame = cobot.trasformInRobotFrame(gaze_center_in_rgb_frame)
                     ax.scatter(gaze_center_in_robot_frame[0], gaze_center_in_robot_frame[1], marker='x', color='red') 
-                
+                    
+                    for id, box in boxes.items():
+                        print(box.isGazed(gaze_center_in_robot_frame))   
+            
             plt.draw()
 
             try:

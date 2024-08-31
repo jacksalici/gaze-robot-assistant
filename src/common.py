@@ -53,11 +53,18 @@ class Box:
 class Cobot(Box):
     def __init__(self, id, positionInRobotFrame=None, rotationInRobotFrame=None, positionInGlassesFrame=None, rotationInGlassesFrame=None) -> None:
         super().__init__(id, positionInRobotFrame, rotationInRobotFrame, positionInGlassesFrame, rotationInGlassesFrame)
-        
-        R = cv2.Rodrigues(np.array(self.rotationInGlassesFrame))[0]
+        self.__setExtrinsic()
 
-        self.E_robot2glasses = inv_transformation_matrix(np.hstack((R, self.positionInGlassesFrame.reshape((3,1)))))
     
+    def updatePosition(self, positionInGlassesFrame, rotationInGlassesFrame):
+        self.positionInGlassesFrame = positionInGlassesFrame 
+        self.rotationInGlassesFrame = rotationInGlassesFrame 
+        self.__setExtrinsic()
+        
+    def __setExtrinsic(self):
+        R = cv2.Rodrigues(np.array(self.rotationInGlassesFrame))[0]
+        self.E_robot2glasses = inv_transformation_matrix(np.hstack((R, self.positionInGlassesFrame.reshape((3,1)))))
+
     
     def trasformInRobotFrame(self, positionInGlassesFrame):
         return (self.E_robot2glasses
@@ -70,6 +77,7 @@ class Cobot(Box):
                 )[:3]
        
 from typing import Dict
+
 def generateBoxes(marker_ids, robot_id, rvecs, tvecs):
     cobot: Cobot = None
     boxes: Dict[int, Box] = {} 
@@ -95,4 +103,12 @@ def generateBoxes(marker_ids, robot_id, rvecs, tvecs):
     
     return boxes, cobot
     
-    
+def updateCobot(cobot: Cobot, marker_ids, rvecs, tvecs):
+    for i, id in enumerate(marker_ids):
+        if id[0] == cobot.id:
+            cobot.updatePosition(
+                positionInGlassesFrame = tvecs[i],
+                rotationInGlassesFrame = rvecs[i]
+            )
+           
+            
