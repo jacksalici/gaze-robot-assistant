@@ -69,5 +69,18 @@ class Server():
     
 if __name__ == "__main__":
     client = Client("0.0.0.0")
+    
+    from common import *
+    
     while True:
-        client.send_message(input("Input: "))
+        msg = CobotSocketMessage(
+                        init=True,
+                        trigger_robot=False,
+                        glasses_position=[0,0,0],
+                        target_position=[0,0,0],
+                        boxes_position= [[1,2,3], [2,3,3]]
+                    )
+                    
+        client.send_message(dumps_CobotSocketMessage(msg))
+        
+        l = input("enter to continue")

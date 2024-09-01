@@ -117,12 +117,12 @@ import json
 from typing import List
 
 @dataclass
-class CobotSocketMessage:
-    init: bool
-    trigger_robot: bool
-    target_position: List[float]
-    glasses_position: List[float]
-    boxes_position: List[List[float]]
+class CobotSocketMessage: # one message for both action (spawn boxes or trigger robot)
+    init: bool # when true, spawn boxes
+    trigger_robot: bool # when true, trigger robot
+    target_position: List[float] # goto position for the robot to a box
+    glasses_position: List[float] # goto position for the robot when has to bring sth to the person
+    boxes_position: List[List[float]] # position of all the boxes, useful just when trigging
     
 def dumps_CobotSocketMessage(msg: CobotSocketMessage) -> str:
     return json.dumps(asdict(msg))
@@ -132,3 +132,5 @@ def load_CobotSocketMessage(msg: str) -> CobotSocketMessage:
     return make_dataclass(
     "CobotSocketMessage", ((k, type(v)) for k, v in my_dict.items())
 )(**my_dict)
+    
+    

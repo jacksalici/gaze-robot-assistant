@@ -61,6 +61,7 @@ def main():
     boxes = {}
     cobot = None
     
+    
     socket_client = Client(config["server_ip"])
     
     plt.ion()
@@ -96,6 +97,18 @@ def main():
                 if len(marker_ids) - 1 == config["n_boxes"] and BOX_POSITION_SAVED == False: # when all the markers (the boxes plus the cobot's one) are seen initialize the boxes objects
                     boxes, cobot = generateBoxes(marker_ids, config["robot_aruco_id"], rvecs, tvecs)
                     BOX_POSITION_SAVED = True
+                    
+                    msg = CobotSocketMessage(
+                        init=True,
+                        trigger_robot=False,
+                        glasses_position=[0,0,0],
+                        target_position=[0,0,0],
+                        boxes_position= [box.getPositionInRobotFrame().tolist() for box in boxes]
+                    )
+                    
+                    socket_client.send_message(dumps_CobotSocketMessage(msg))
+                    
+                    
                 elif BOX_POSITION_SAVED:
                     updateCobot(cobot, marker_ids, rvecs, tvecs)
                     
@@ -151,7 +164,16 @@ def main():
                         trigger = box.isGazed(gaze_center_in_robot_frame)
                         
                         if trigger:
-                            socket_client.send_message(id)            
+                            msg = CobotSocketMessage(
+                                init=False,
+                                trigger_robot=True,
+                                glasses_position=gaze_center_in_robot_frame.tolist(),
+                                target_position=box.getPositionInRobotFrame().tolist(),
+                                boxes_position= [box.getPositionInRobotFrame().tolist() for box in boxes]
+                            )
+                    
+                            socket_client.send_message(dumps_CobotSocketMessage(msg))
+                            
             plt.draw()
 
             try:
