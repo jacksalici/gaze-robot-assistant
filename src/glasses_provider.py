@@ -103,7 +103,7 @@ def main():
                         trigger_robot=False,
                         glasses_position=[0,0,0],
                         target_position=[0,0,0],
-                        boxes_position= [box.getPositionInRobotFrame().tolist() for box in boxes]
+                        boxes_position= [box.getPositionInRobotFrame().tolist() for _, box in boxes.items()]
                     )
                     
                     socket_client.send_message(dumps_CobotSocketMessage(msg))

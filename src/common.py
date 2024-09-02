@@ -29,7 +29,7 @@ class Box:
     def getPositionInRobotFrame(self):
         return self.positionInRobotFrame
         
-    def isGazed(self, gaze_position) -> bool:
+    def isGazed(self, gaze_position_in_robot_frame) -> bool:
         """check if the box is being gazed.
 
         Args:
@@ -39,10 +39,11 @@ class Box:
             bool: return true if it has been gazed for more than the time threshold
         """        
         
-        if np.linalg.norm(gaze_position-self.position) < self.config["position_threshold"]:
-            if self.__gazedSince < 0:
+        if np.linalg.norm(gaze_position_in_robot_frame-self.positionInRobotFrame) < self.config["position_threshold"]:
+            if int(self.__gazedSince) < 0:
                 self.__gazedSince = time.time
             elif time.time - self.__gazedSince > self.config["gaze_time_min"]:
+                print(f"INFO: Box with id {self.id} is being gazed!")
                 return True 
         else:
             self.__gazedSince = -1
