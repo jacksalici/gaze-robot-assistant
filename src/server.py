@@ -1,7 +1,7 @@
 from socket_com import Server
 from common import *
 
-def ciao(str_msg):
+def logging(str_msg):
     msg = load_CobotSocketMessage(str_msg)
     if msg.init:
         print("ACTION: INIT")
@@ -10,4 +10,4 @@ def ciao(str_msg):
     print (str_msg)
 
 if __name__ == "__main__":
-    server = Server(ciao)
+    server = Server(logging)

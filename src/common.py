@@ -40,10 +40,11 @@ class Box:
         """        
         
         if np.linalg.norm(gaze_position_in_robot_frame-self.positionInRobotFrame) < self.config["position_threshold"]:
-            if int(self.__gazedSince) < 0:
-                self.__gazedSince = time.time
-            elif time.time - self.__gazedSince > self.config["gaze_time_min"]:
+            if self.__gazedSince < 0:
+                self.__gazedSince = time.time()
+            elif time.time() - self.__gazedSince > self.config["gaze_time_min"]:
                 print(f"INFO: Box with id {self.id} is being gazed!")
+                self.__gazedSince = -1
                 return True 
         else:
             self.__gazedSince = -1
@@ -117,6 +118,7 @@ from dataclasses import dataclass, asdict, make_dataclass
 import json
 from typing import List
 
+#todo: as for now the box are points and trigger robot target is the same point.
 @dataclass
 class CobotSocketMessage: # one message for both action (spawn boxes or trigger robot)
     init: bool # when true, spawn boxes
