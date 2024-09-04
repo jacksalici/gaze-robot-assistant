@@ -11,13 +11,14 @@ import aria.sdk as aria
 from detection_and_pose_estimation import DetectAndPoseEstimator
 import cv2
 import numpy as np
-
+import os
 import tomllib
 import time
 
-from common import *
+from cobot_boxes import *
 import matplotlib.pyplot as plt
 from socket_com import Client
+
 
 def main():
     
@@ -96,6 +97,7 @@ def main():
                 
                 if len(marker_ids) - 1 == config["n_boxes"] and BOX_POSITION_SAVED == False: # when all the markers (the boxes plus the cobot's one) are seen initialize the boxes objects
                     boxes, cobot = generateBoxes(marker_ids, config["robot_aruco_id"], rvecs, tvecs)
+                    os.system("say 'boxes generated' &")
                     BOX_POSITION_SAVED = True
                     
                     msg = CobotSocketMessage(
@@ -171,7 +173,7 @@ def main():
                                 target_position=box.getPositionInRobotFrame().tolist(),
                                 boxes_position= [box.getPositionInRobotFrame().tolist() for _, box in boxes.items()]
                             )
-                    
+                            os.system(f"say 'cobot triggered toward box {id}' &")
                             socket_client.send_message(dumps_CobotSocketMessage(msg))
                             
             plt.draw()

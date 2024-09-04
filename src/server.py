@@ -1,5 +1,5 @@
 from socket_com import Server
-from common import *
+from cobot_boxes import *
 
 def logging(str_msg):
     msg = load_CobotSocketMessage(str_msg)

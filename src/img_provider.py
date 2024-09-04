@@ -1,7 +1,7 @@
 import numpy as np
 import cv2, glob, re, tomllib, os
 from detection_and_pose_estimation import DetectAndPoseEstimator
-from common import inv_transformation_matrix
+from cobot_boxes import inv_transformation_matrix
 
 ROBOT_MARKER_ID = 1
 

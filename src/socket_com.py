@@ -70,7 +70,7 @@ class Server():
 if __name__ == "__main__":
     client = Client("0.0.0.0")
     
-    from common import *
+    from cobot_boxes import *
     
     while True:
         msg = CobotSocketMessage(
