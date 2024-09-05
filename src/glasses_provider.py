@@ -101,8 +101,8 @@ def main():
                     BOX_POSITION_SAVED = True
                     
                     msg = CobotSocketMessage(
-                        init=True,
-                        trigger_robot=False,
+                        init=1,
+                        trigger_robot=0,
                         glasses_position=[0,0,0],
                         target_position=[0,0,0],
                         boxes_position= [box.getPositionInRobotFrame().tolist() for _, box in boxes.items()]
@@ -167,8 +167,8 @@ def main():
                         
                         if trigger:
                             msg = CobotSocketMessage(
-                                init=False,
-                                trigger_robot=True,
+                                init=0,
+                                trigger_robot=1,
                                 glasses_position=gaze_center_in_robot_frame.tolist(),
                                 target_position=box.getPositionInRobotFrame().tolist(),
                                 boxes_position= [box.getPositionInRobotFrame().tolist() for _, box in boxes.items()]

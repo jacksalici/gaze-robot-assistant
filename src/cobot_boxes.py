@@ -8,12 +8,12 @@ def inv_transformation_matrix(E):
     return np.hstack((R.T,-R.T@T))
 
 import json   
-import tomllib
+import toml
 import time
 
 class Box:
     def __init__(self, id, positionInRobotFrame = None, rotationInRobotFrame = None, positionInGlassesFrame = None, rotationInGlassesFrame = None) -> None:
-        self.config = tomllib.load(open("config.toml", "rb"))
+        self.config = toml.load(open("config.toml", "rb"))
         self.id = id
         self.__gazedSince = -1 # -1 if not gazed, second since the started
         

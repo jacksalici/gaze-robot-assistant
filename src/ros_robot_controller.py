@@ -7,7 +7,7 @@ import moveit_msgs.msg
 import geometry_msgs.msg
 import subprocess 
 import time
-
+from socket_com import Server
 import rospy
 from gazebo_msgs.srv import DeleteModel, SpawnModel
 from geometry_msgs.msg import Pose, Point, Quaternion
@@ -16,10 +16,18 @@ import toml
 
 config = toml.load("config.toml")
 
+TABLE_HEIGHT = 0.4
 
 
 class RobotController:
-    def __init__(self, add_boxes=True):
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(RobotController, cls).__new__(cls)
+        return cls._instance
+    
+    def __init__(self):
 
         """Initialize the moveit_commander, rospy nodes, and the robot controller."""
         #self.launch_simulation(boxes) 
@@ -32,18 +40,7 @@ class RobotController:
         self.group_arm = moveit_commander.MoveGroupCommander("panda_arm")
         self.group_hand = moveit_commander.MoveGroupCommander("panda_hand")        
 
-        boxes = [[0.5, -0.25, 0.4], [0.5, 0.25, 0.4]] 
-        
-        if add_boxes:
-            #table
-            self.add_rviz_model("table")
-
-            #boxes
-            for i, box in enumerate(boxes):
-                ret = self.spawn_gazebo_model(f"box{i}", config["box_sdf_path"], box)
-                self.add_rviz_model(f"box{i}", config["box_stl_path"], box, orientation=[0.0, 0.0, 0.707, 0.707])
- 
-
+        self.add_rviz_model("table")
 
         # Create a DisplayTrajectory publisher for RViz visualization
         self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path',
@@ -51,7 +48,16 @@ class RobotController:
                                                             queue_size=20)
         rospy.sleep(2)  # Allow time for setup
 
+    def init_boxes(self, boxes_position):
+        print("ONGOING INIT")
+
+        #boxes
+        for i, box in enumerate(boxes_position):
+            ret = self.spawn_gazebo_model(f"box{i}", config["box_sdf_path"], box)
+            self.add_rviz_model(f"box{i}", config["box_stl_path"], box, orientation=[0.0, 0.0, 0.707, 0.707])
+
     def move_to_position(self, position = (0.3, 0, 0.6), orientation=(1e-6, -1.0, 0, 0)):
+        print("ONGOING TRIGGER")
         """Move the robot's end-effector to a specified position with orientation."""
         pose_goal = geometry_msgs.msg.Pose()
         x, y, z = position
@@ -166,13 +172,15 @@ def main():
 
     # Initialize the robot controller
     ADD = 1
-    controller = RobotController(add_boxes=ADD)
+    controller = RobotController()
 
 
     if ADD:
         # Add a table and a stone to the scene
 
         #controller.open_gripper()
+        boxes = [[0.5, -0.25, TABLE_HEIGHT], [0.5, 0.25, TABLE_HEIGHT]] 
+        controller.init_boxes(boxes_position=boxes)
 
         controller.move_to_position(
             position = (0.5, -0.26, 0.64),
