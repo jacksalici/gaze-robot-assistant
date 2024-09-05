@@ -10,7 +10,7 @@ class Client():
     
     def send_message(self, message):
 
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.SO_REUSEADDR)
 
         server_address = ('localhost', 65432)
         client_socket.connect(server_address)
@@ -66,7 +66,7 @@ class Server():
 
                     if msg.trigger_robot:
                         print("ACTION: TRIGGER")
-                        self.robotController.move_to_position(self.trasform_coordinates(*msg.target_position))
+                        self.robotController.move_to_position(self.trasform_coordinates(*msg.target_position, trigger= True), orientation=[ -0.4373166, -0.8952134, 0.0749274, -0.0416291 ])
 
                 else:
                     break
@@ -81,12 +81,11 @@ class Server():
             client_socket.close()
 
 
-    def trasform_coordinates(self, x, y, z):
-        TABLE_HEIGHT = 0.6
-        return [-y, x, TABLE_HEIGHT]
+    def trasform_coordinates(self, x, y, z, trigger = False):
+        return [-y+0.15, x, 0.4 if not trigger else 0.6]
 
     def trasform_all_coordinates(self, coordinates_list):
-        return [self.trasform_all_coordinates(*coordinates) for coordinates in coordinates_list]
+        return [self.trasform_coordinates(*coordinates) for coordinates in coordinates_list]
 
 
 if __name__ == "__main__":
