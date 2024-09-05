@@ -19,4 +19,5 @@ marker_lenght = 0.0706
 server_ip = "0.0.0.0"
 
 ## Gazebo
-box_model_file = "/path/to/file.sdf"
+box_sdf_path = "/path/to/file.sdf"
+box_stl_path = "/path/to/file.stl"

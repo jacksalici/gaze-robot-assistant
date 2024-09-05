@@ -12,23 +12,16 @@ import rospy
 from gazebo_msgs.srv import DeleteModel, SpawnModel
 from geometry_msgs.msg import Pose, Point, Quaternion
 
-box_path = '/home/jack/Documents/SR_project/robot/src/franka_ros/franka_gazebo/models/box/model.sdf'
+import toml
+
+config = toml.load("config.toml")
+
 
 
 class RobotController:
     def __init__(self, add_boxes=True):
 
         """Initialize the moveit_commander, rospy nodes, and the robot controller."""
-        
-
-        boxes = [[0.5, -0.25, 0.4], [0.5, 0.25, 0.4]] 
-        
-        if add_boxes:
-            for i, box in enumerate(boxes):
-                ret = self.spawn_gazebo_model(f"box{i}", box_path, box)
-                print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", ret)
-            
- 
         #self.launch_simulation(boxes) 
         moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node('panda_robot_controller', anonymous=True)
@@ -37,7 +30,20 @@ class RobotController:
         self.robot = moveit_commander.RobotCommander()
         self.scene = moveit_commander.PlanningSceneInterface()
         self.group_arm = moveit_commander.MoveGroupCommander("panda_arm")
-        self.group_hand = moveit_commander.MoveGroupCommander("panda_hand")
+        self.group_hand = moveit_commander.MoveGroupCommander("panda_hand")        
+
+        boxes = [[0.5, -0.25, 0.4], [0.5, 0.25, 0.4]] 
+        
+        if add_boxes:
+            #table
+            self.add_rviz_model("table")
+
+            #boxes
+            for i, box in enumerate(boxes):
+                ret = self.spawn_gazebo_model(f"box{i}", config["box_sdf_path"], box)
+                self.add_rviz_model(f"box{i}", config["box_stl_path"], box, orientation=[0.0, 0.0, 0.707, 0.707])
+ 
+
 
         # Create a DisplayTrajectory publisher for RViz visualization
         self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path',
@@ -85,23 +91,32 @@ class RobotController:
         self.group_hand.go(joint_goal, wait=True)
         self.group_hand.stop()
 
-    def add_table(self):
-        """Add a table object to the planning scene."""
-        table_pose = geometry_msgs.msg.PoseStamped()
-        table_pose.header.frame_id = self.robot.get_planning_frame()
-        table_pose.pose.orientation.w = 1.0
-        table_pose.pose.position.x = 0.516428
-        table_pose.pose.position.y = 0.000584
-        table_pose.pose.position.z = 0.2099115
+    def add_rviz_model(self, name, model_path=False, position = [0.5, 0.0, 0.2], size=[0.45, 1.0, 0.42 ], orientation = [0.0, 0.0, 0.0, 1.0] ):
+        """Add an object to the planning scene."""
+        pose = geometry_msgs.msg.PoseStamped()
+        pose.header.frame_id = self.robot.get_planning_frame()
+ 
+        pose.pose.orientation.x = orientation[0]
+        pose.pose.orientation.y = orientation[1]
+        pose.pose.orientation.z = orientation[2]
+        pose.pose.orientation.w = orientation[3]
+        
+        pose.pose.position.x = position[0]
+        pose.pose.position.y = position[1]
+        pose.pose.position.z = position[2]
 
-        box_name = "big_table"
-        self.scene.add_box(box_name, table_pose, size=(0.453157, 0.642049, 0.419823))
+        if not model_path:
+            
+            self.scene.add_box(name, pose, size)
+
+        else:
+
+            self.scene.add_mesh(name, pose, model_path)# size=(0.453157, 0.642049, 0.419823))
 
 
-    def remove_table(self):
-        """Remove the table object from the planning scene."""
-        box_name = "big_table"
-        self.scene.remove_world_object(box_name)
+    def remove_rviz_model(self, name):
+        """Remove the object from the planning scene."""
+        self.scene.remove_world_object(name)
 
     def delete_gazebo_model(self, model_name):
         rospy.wait_for_service('/gazebo/delete_model')
@@ -150,19 +165,18 @@ def main():
 
 
     # Initialize the robot controller
-    ADD = False
+    ADD = 1
     controller = RobotController(add_boxes=ADD)
 
 
     if ADD:
         # Add a table and a stone to the scene
-        controller.add_table()
 
         #controller.open_gripper()
 
         controller.move_to_position(
-            position = (0.5, -0.22, 0.6),
-            orientation = (1e-6, -1.0, 0.0, 0)
+            position = (0.5, -0.26, 0.64),
+            orientation = [ -0.4373166, -0.8952134, 0.0749274, -0.0416291 ]
         )
 
         #controller.close_gripper()
@@ -180,7 +194,9 @@ def main():
         controller.delete_gazebo_model("box0")
         controller.delete_gazebo_model("box1")
         
-        controller.remove_table()
+        controller.remove_rviz_model("table")
+        controller.remove_rviz_model("box0")
+        controller.remove_rviz_model("box1")
 
 if __name__ == "__main__":
     main()
