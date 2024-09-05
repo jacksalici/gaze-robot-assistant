@@ -59,12 +59,12 @@ class RobotController:
         pose_goal.position.x = x
         pose_goal.position.y = y
         pose_goal.position.z = z
-        pose_goal.orientation.w = orientation[0]
-        pose_goal.orientation.x = orientation[1]
-        pose_goal.orientation.y = orientation[2]
-        pose_goal.orientation.z = orientation[3]
+        pose_goal.orientation.x = orientation[0]
+        pose_goal.orientation.y = orientation[1]
+        pose_goal.orientation.z = orientation[2]
+        pose_goal.orientation.w = orientation[3]
 
-        self.group_arm.limit_max_cartesian_link_speed(50)
+
         # Set the goal pose for the end-effector
         self.group_arm.set_pose_target(pose_goal)
 
@@ -155,11 +155,6 @@ class RobotController:
         
  
 
-
- 
-# Example usage 
-
-#0.508578 -y -0.215704 -z 0.419773
 
 def main():
 
