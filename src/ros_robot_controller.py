@@ -7,7 +7,6 @@ import moveit_msgs.msg
 import geometry_msgs.msg
 import subprocess 
 import time
-from socket_com import Server
 import rospy
 from gazebo_msgs.srv import DeleteModel, SpawnModel
 from geometry_msgs.msg import Pose, Point, Quaternion
@@ -171,7 +170,7 @@ def main():
 
 
     # Initialize the robot controller
-    ADD = 1
+    ADD = 0
     controller = RobotController()
 
 

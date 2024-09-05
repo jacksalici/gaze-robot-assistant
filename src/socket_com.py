@@ -1,72 +1,94 @@
 import socket
 import threading
-from typing import Callable
+from ros_robot_controller import RobotController
+from cobot_boxes import *
 
 class Client():
     def __init__(self, server_ip):
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.connect((server_ip, 12345))
-        print("Connected to the server.")
+        self.server_ip = server_ip
 
-        receive_thread = threading.Thread(target=self.receive_messages)
-        receive_thread.start()
-
-    def receive_messages(self):
-        while True:
-            try:
-                message = self.client_socket.recv(1024).decode('utf-8')
-                if message:
-                    print(f"Received: {message}")
-            except:
-                print("Connection closed.")
-                break
-
+    
     def send_message(self, message):
-       
+
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        server_address = ('localhost', 65432)
+        client_socket.connect(server_address)
+
         try:
-            self.client_socket.send(message.encode('utf-8'))
-        except:
-            print("ERROR: Socket connection closed.")
+            client_socket.sendall(message.encode('utf-8'))
+
+            response = client_socket.recv(1024)
+            print(f"Received response: {response.decode('utf-8')}")
+
+        finally:
+            client_socket.close()
+        
+            try:
+                self.client_socket.send(message.encode('utf-8'))
+            except:
+                print("ERROR: Socket connection closed.")
             
 
 class Server():
-    def __init__(self, function) -> None:
-        self.clients = []
+    def __init__(self) -> None:
 
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.bind(('0.0.0.0', 12345))
         server_socket.listen(3)
         print("INFO: Server started.")
 
+        self.robotController = RobotController()
+
         while True:
             client_socket, client_address = server_socket.accept()
-            self.clients.append(client_socket)
             print(f"INFO: Client {client_address} connected.")
-            client_thread = threading.Thread(target=self.handle_client, args=(client_socket, client_address, function))
+            client_thread = threading.Thread(target=self.handle_client, args=(client_socket, client_address))
             client_thread.start()
 
-    def handle_client(self, client_socket, client_address, function: Callable = None):
-        while True:
-            try:
-                message = client_socket.recv(1024).decode('utf-8')
-                if message:
-                    print(f"INFO: Received message from {client_address}")
-                    if function != None:
-                        function(message)
-                    
-                else:
-                    self.remove_client(client_socket)
-                    break
-            except:
-                continue
+    def handle_client(self, client_socket, client_address):
+        try:
+            print(f"Connection from {client_address}")
 
+            while True:
+                # Receive data from the client
+                data = client_socket.recv(1024)
+                if data:
+                    # Decode the message from the client
+                    message = data.decode('utf-8')
+                    print(f"Received message: {message} from {client_address}")
+
+                    msg = load_CobotSocketMessage(message)
+                    print(msg)
+                    if msg.init:
+                        print("ACTION: INIT")
+                        self.robotController.init_boxes(self.trasform_all_coordinates(msg.boxes_position))    
+
+                    if msg.trigger_robot:
+                        print("ACTION: TRIGGER")
+                        self.robotController.move_to_position(self.trasform_coordinates(*msg.target_position))
+
+                else:
+                    break
+
+        finally:
+            # Clean up the connection
+            client_socket.close()
+        
     def remove_client(self, client_socket):
         if client_socket in self.clients:
             self.clients.remove(client_socket)
             client_socket.close()
 
 
-    
+    def trasform_coordinates(self, x, y, z):
+        TABLE_HEIGHT = 0.6
+        return [-y, x, TABLE_HEIGHT]
+
+    def trasform_all_coordinates(self, coordinates_list):
+        return [self.trasform_all_coordinates(*coordinates) for coordinates in coordinates_list]
+
+
 if __name__ == "__main__":
     client = Client("0.0.0.0")
     
