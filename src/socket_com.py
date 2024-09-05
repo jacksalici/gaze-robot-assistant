@@ -1,6 +1,5 @@
 import socket
 import threading
-from ros_robot_controller import RobotController
 from cobot_boxes import *
 
 class Client():
@@ -12,26 +11,21 @@ class Client():
 
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        server_address = ('localhost', 65432)
+        server_address = (self.server_ip, 12345)
         client_socket.connect(server_address)
 
         try:
-            client_socket.sendall(message.encode('utf-8'))
 
-            response = client_socket.recv(1024)
-            print(f"Received response: {response.decode('utf-8')}")
+            client_socket.sendall(message.encode('utf-8'))
 
         finally:
             client_socket.close()
-        
-            try:
-                self.client_socket.send(message.encode('utf-8'))
-            except:
-                print("ERROR: Socket connection closed.")
-            
+    
 
 class Server():
     def __init__(self) -> None:
+        from ros_robot_controller import RobotController
+
 
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.bind(('0.0.0.0', 12345))
