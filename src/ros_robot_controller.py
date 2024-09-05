@@ -15,7 +15,6 @@ import toml
 
 config = toml.load("config.toml")
 
-TABLE_HEIGHT = 0.4
 
 
 class RobotController:
@@ -48,15 +47,12 @@ class RobotController:
         rospy.sleep(2)  # Allow time for setup
 
     def init_boxes(self, boxes_position):
-        print("ONGOING INIT")
-
         #boxes
         for i, box in enumerate(boxes_position):
             ret = self.spawn_gazebo_model(f"box{i}", config["box_sdf_path"], box)
             self.add_rviz_model(f"box{i}", config["box_stl_path"], box, orientation=[0.0, 0.0, 0.707, 0.707])
 
     def move_to_position(self, position = (0.3, 0, 0.6), orientation=(1e-6, -1.0, 0, 0)):
-        print("ONGOING TRIGGER")
         """Move the robot's end-effector to a specified position with orientation."""
         pose_goal = geometry_msgs.msg.Pose()
         x, y, z = position
@@ -171,20 +167,21 @@ def main():
 
     # Initialize the robot controller
     ADD = 0
+    MOVE = 1
+    REMOVE = 0
     controller = RobotController()
 
 
     if ADD:
+        table_height = 0.4
+
         # Add a table and a stone to the scene
 
         #controller.open_gripper()
-        boxes = [[0.5, -0.25, TABLE_HEIGHT], [0.5, 0.25, TABLE_HEIGHT]] 
+        boxes = [[0.5, -0.25, table_height], [0.5, 0.25, table_height]] 
         controller.init_boxes(boxes_position=boxes)
 
-        controller.move_to_position(
-            position = (0.5, -0.26, 0.64),
-            orientation = [ -0.4373166, -0.8952134, 0.0749274, -0.0416291 ]
-        )
+     
 
         #controller.close_gripper()
 
@@ -197,7 +194,7 @@ def main():
 
         #controller.shutdown_moveit()
     
-    else:
+    if REMOVE:
         controller.delete_gazebo_model("box0")
         controller.delete_gazebo_model("box1")
         
@@ -205,5 +202,11 @@ def main():
         controller.remove_rviz_model("box0")
         controller.remove_rviz_model("box1")
 
+    if MOVE:
+        controller.move_to_position(
+            position = (0.5, 0, 0.64),
+            orientation = [ -0.3656115, -0.9307495, -0.005395, 0.0021192 ]
+        )
+    
 if __name__ == "__main__":
     main()
