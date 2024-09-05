@@ -6,17 +6,30 @@ import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
 import subprocess 
+import time
+
+import rospy
+from gazebo_msgs.srv import DeleteModel, SpawnModel
+from geometry_msgs.msg import Pose, Point, Quaternion
+
+box_path = '/home/jack/Documents/SR_project/robot/src/franka_ros/franka_gazebo/models/box/model.sdf'
+
 
 class RobotController:
-    def __init__(self):
+    def __init__(self, add_boxes=True):
+
         """Initialize the moveit_commander, rospy nodes, and the robot controller."""
         
 
-        pick_tray_coords = (0.5, -0.25, 0.4) 
-        place_tray_coords = (0.5, 0.25, 0.4) 
- 
-        self.launch_simulation(pick_tray_coords, place_tray_coords) 
+        boxes = [[0.5, -0.25, 0.4], [0.5, 0.25, 0.4]] 
         
+        if add_boxes:
+            for i, box in enumerate(boxes):
+                ret = self.spawn_gazebo_model(f"box{i}", box_path, box)
+                print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", ret)
+            
+ 
+        #self.launch_simulation(boxes) 
         moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node('panda_robot_controller', anonymous=True)
  
@@ -87,10 +100,37 @@ class RobotController:
 
     def remove_table(self):
         """Remove the table object from the planning scene."""
-        box_name = "table_franka"
+        box_name = "big_table"
         self.scene.remove_world_object(box_name)
 
-  
+    def delete_gazebo_model(self, model_name):
+        rospy.wait_for_service('/gazebo/delete_model')
+        try:
+            delete_model_service = rospy.ServiceProxy('/gazebo/delete_model', DeleteModel)
+            resp = delete_model_service(model_name)
+            return resp.success
+        except rospy.ServiceException as e:
+            rospy.logerr(f"Service call failed: {e}")
+            return False
+
+    def spawn_gazebo_model(self, model_name, model_file, position):
+        rospy.wait_for_service('/gazebo/spawn_sdf_model')
+        try:
+            spawn_model_service = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
+            model_xml = ""
+            with open(model_file, "r") as model_file:
+                model_xml = model_file.read()
+
+            pose = Pose()
+            pose.position = Point(*position)
+            pose.orientation = Quaternion(0, 0, 0, 1)  # No rotation
+
+            resp = spawn_model_service(model_name, model_xml, "/", pose, "world")
+            return resp.success
+        except rospy.ServiceException as e:
+            rospy.logerr(f"Service call failed: {e}")
+            return False
+    
 
     def shutdown_moveit(self):
         """Shut down MoveIt cleanly."""
@@ -98,58 +138,49 @@ class RobotController:
         moveit_commander.os._exit(0)
         
  
-    def marker_position(): 
-        pass 
-        
-    from typing import List
-    def launch_simulation(self, boxes_coords: List[List[float]]): 
-        
-        N_BOXES = 2
-        assert len(boxes_coords) == N_BOXES
-        
-        commands_strs=[]
-        for i in range(N_BOXES):
-            for a, axe in enumerate(["x", "y", "z"]):
-                commands_strs.append(f"box{str(i)}_{axe}:={boxes_coords[i][a]}")
-    
-        # Construct the command 
-        command = [ 
-            "roslaunch", "panda_moveit_config", "demo_robot.launch", 
-        ] + commands_strs
-    
-        # Execute the command 
-        print(command)
-        # subprocess.run(command) 
- 
+
+
  
 # Example usage 
 
 #0.508578 -y -0.215704 -z 0.419773
 
 def main():
+
+
+
     # Initialize the robot controller
-    controller = RobotController()
+    ADD = False
+    controller = RobotController(add_boxes=ADD)
 
-    # Add a table and a stone to the scene
-    controller.add_table()
 
-    controller.open_gripper()
+    if ADD:
+        # Add a table and a stone to the scene
+        controller.add_table()
 
-    controller.move_to_position(
-        position = (0.5, -0.22, 0.6),
-        orientation = (1e-6, -1.0, 0.0, 0)
-    )
+        #controller.open_gripper()
 
-    controller.close_gripper()
+        controller.move_to_position(
+            position = (0.5, -0.22, 0.6),
+            orientation = (1e-6, -1.0, 0.0, 0)
+        )
 
-    controller.move_to_position(
-        position = (0.5, 0.2, 0.6),
-        orientation = (1e-6, -1.0, 0.0, 0)
-    )
+        #controller.close_gripper()
 
-    controller.open_gripper()
+        controller.move_to_position(
+            position = (0.5, 0.2, 0.6),
+            orientation = (1e-6, -1.0, 0.0, 0)
+        )
 
-    controller.shutdown_moveit()
+        #controller.open_gripper()
+
+        #controller.shutdown_moveit()
+    
+    else:
+        controller.delete_gazebo_model("box0")
+        controller.delete_gazebo_model("box1")
+        
+        controller.remove_table()
 
 if __name__ == "__main__":
     main()

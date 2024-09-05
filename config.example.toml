@@ -17,3 +17,6 @@ robot_aruco_id = 249
 marker_lenght = 0.0706
 
 server_ip = "0.0.0.0"
+
+## Gazebo
+box_model_file = "/path/to/file.sdf"
