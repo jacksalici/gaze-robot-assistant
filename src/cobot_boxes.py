@@ -13,7 +13,7 @@ import time
 
 class Box:
     def __init__(self, id, positionInRobotFrame = None, rotationInRobotFrame = None, positionInGlassesFrame = None, rotationInGlassesFrame = None) -> None:
-        self.config = toml.load(open("config.toml", "rb"))
+        self.config = toml.load("config.toml")
         self.id = id
         self.__gazedSince = -1 # -1 if not gazed, second since the started
         
