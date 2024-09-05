@@ -5,13 +5,21 @@ import rospy
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
+import subprocess 
 
 class RobotController:
     def __init__(self):
         """Initialize the moveit_commander, rospy nodes, and the robot controller."""
+        
+
+        pick_tray_coords = (0.5, -0.25, 0.4) 
+        place_tray_coords = (0.5, 0.25, 0.4) 
+ 
+        self.launch_simulation(pick_tray_coords, place_tray_coords) 
+        
         moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node('panda_robot_controller', anonymous=True)
-
+ 
         # Instantiate necessary MoveIt classes
         self.robot = moveit_commander.RobotCommander()
         self.scene = moveit_commander.PlanningSceneInterface()
@@ -77,19 +85,6 @@ class RobotController:
         self.scene.add_box(box_name, table_pose, size=(0.453157, 0.642049, 0.419823))
 
 
-    def add_stone(self):
-        """Add a stone object to the planning scene."""
-        stone_pose = geometry_msgs.msg.PoseStamped()
-        stone_pose.header.frame_id = self.robot.get_planning_frame()
-        stone_pose.pose.orientation.w = 1.0
-        stone_pose.pose.position.x = 0.500286
-        stone_pose.pose.position.y = -0.221972
-        stone_pose.pose.position.z = 0.475172
-
-        box_name = "stone"
-        self.scene.add_box(box_name, stone_pose, size=(0.025, 0.032, 0.064))
-
-
     def remove_table(self):
         """Remove the table object from the planning scene."""
         box_name = "table_franka"
@@ -101,6 +96,35 @@ class RobotController:
         """Shut down MoveIt cleanly."""
         moveit_commander.roscpp_shutdown()
         moveit_commander.os._exit(0)
+        
+ 
+    def marker_position(): 
+        pass 
+        
+    from typing import List
+    def launch_simulation(self, boxes_coords: List[List[float]]): 
+        
+        N_BOXES = 2
+        assert len(boxes_coords) == N_BOXES
+        
+        commands_strs=[]
+        for i in range(N_BOXES):
+            for a, axe in enumerate(["x", "y", "z"]):
+                commands_strs.append(f"box{str(i)}_{axe}:={boxes_coords[i][a]}")
+    
+        # Construct the command 
+        command = [ 
+            "roslaunch", "panda_moveit_config", "demo_robot.launch", 
+        ] + commands_strs
+    
+        # Execute the command 
+        print(command)
+        # subprocess.run(command) 
+ 
+ 
+# Example usage 
+
+#0.508578 -y -0.215704 -z 0.419773
 
 def main():
     # Initialize the robot controller
