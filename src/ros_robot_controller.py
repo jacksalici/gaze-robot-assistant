@@ -51,7 +51,7 @@ class RobotController:
     def init_boxes(self, boxes_position, boxes_yaws):
         #boxes
         for i, box in enumerate(boxes_position):
-            ret = self.spawn_gazebo_model(f"box{i}", config["box_sdf_path"], box)
+            ret = self.spawn_gazebo_model(f"box{i}", config["box_sdf_path"], box, orientation=yaw_to_quaternion(boxes_yaws[i], 0.0))
             self.add_rviz_model(f"box{i}", config["box_stl_path"], box, orientation=yaw_to_quaternion(boxes_yaws[i]))
 
     def move_to_position(self, position = (0.3, 0, 0.6), orientation=(1e-6, -1.0, 0, 0)):
@@ -114,7 +114,7 @@ class RobotController:
 
         else:
 
-            self.scene.add_mesh(name, pose, model_path)# size=(0.453157, 0.642049, 0.419823))
+            self.scene.add_mesh(name, pose, model_path)
 
 
     def remove_rviz_model(self, name):
@@ -131,7 +131,7 @@ class RobotController:
             rospy.logerr(f"Service call failed: {e}")
             return False
 
-    def spawn_gazebo_model(self, model_name, model_file, position):
+    def spawn_gazebo_model(self, model_name, model_file, position, orientation = [0,0,0,1]):
         rospy.wait_for_service('/gazebo/spawn_sdf_model')
         try:
             spawn_model_service = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
@@ -141,7 +141,7 @@ class RobotController:
 
             pose = Pose()
             pose.position = Point(*position)
-            pose.orientation = Quaternion(0, 0, 0, 1)  # No rotation
+            pose.orientation = Quaternion(*orientation)
 
             resp = spawn_model_service(model_name, model_xml, "/", pose, "world")
             return resp.success
@@ -158,52 +158,47 @@ class RobotController:
  
 
 
+
 def main():
+    import argparse
 
-
+    # Argument parser setup
+    parser = argparse.ArgumentParser(description='Control robot actions: add, move, or remove objects in the scene.')
+    parser.add_argument('--add', action='store_true', help='Add objects to the scene')
+    parser.add_argument('--move', action='store_true', help='Move the robot')
+    parser.add_argument('--remove', action='store_true', help='Remove objects from the scene')
+    
+    args = parser.parse_args()
 
     # Initialize the robot controller
-    ADD = 0
-    MOVE = 1
-    REMOVE = 0
     controller = RobotController()
 
-
-    if ADD:
+    if args.add:
         table_height = 0.4
 
         # Add a table and a stone to the scene
-
-        #controller.open_gripper()
         boxes = [[0.5, -0.25, table_height], [0.5, 0.25, table_height]] 
         controller.init_boxes(boxes_position=boxes, boxes_yaws=[0.0, 0.0])
 
-     
-
-        #controller.close_gripper()
-
         controller.move_to_position(
-            position = (0.5, 0.2, 0.6),
-            orientation = (1e-6, -1.0, 0.0, 0)
+            position=(0.5, 0.2, 0.6),
+            orientation=(1e-6, -1.0, 0.0, 0)
         )
 
-        #controller.open_gripper()
+    if args.remove:
+        for i in range (config['n_boxes']):
+            controller.delete_gazebo_model(f"box{i}")        
+            controller.remove_rviz_model(f"box{i}")
 
-        #controller.shutdown_moveit()
-    
-    if REMOVE:
-        controller.delete_gazebo_model("box0")
-        controller.delete_gazebo_model("box1")
-        
         controller.remove_rviz_model("table")
-        controller.remove_rviz_model("box0")
-        controller.remove_rviz_model("box1")
 
-    if MOVE:
+
+    if args.move:
         controller.move_to_position(
-            position = (0.5, 0, 0.64),
-            orientation = [ -0.3656115, -0.9307495, -0.005395, 0.0021192 ]
+            position=(0.5, 0, 0.64),
+            orientation=[-0.3656115, -0.9307495, -0.005395, 0.0021192]
         )
-    
+
 if __name__ == "__main__":
     main()
+
