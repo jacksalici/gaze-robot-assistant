@@ -176,7 +176,7 @@ def main():
 
         #controller.open_gripper()
         boxes = [[0.5, -0.25, table_height], [0.5, 0.25, table_height]] 
-        controller.init_boxes(boxes_position=boxes, [0.0, 0.0])
+        controller.init_boxes(boxes_position=boxes, boxes_yaws=[0.0, 0.0])
 
      
 
