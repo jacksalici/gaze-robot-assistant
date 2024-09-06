@@ -25,9 +25,15 @@ class Box:
     
     def setPositionInRobotFrame(self, position):
         self.positionInRobotFrame = position
+
+    def setRotationInRobotFrame(self, rotation):
+        self.rotationInRobotFrame = rotation
     
     def getPositionInRobotFrame(self):
         return self.positionInRobotFrame
+    
+    def getRotationInRobotFrame(self):
+        return self.rotationInRobotFrame
         
     def isGazed(self, gaze_position_in_robot_frame) -> bool:
         """check if the box is being gazed.
@@ -74,6 +80,12 @@ class Cobot(Box):
                     @ np.append(positionInGlassesFrame, [1])
                 )[:3]
     
+    def rotateInRobotFrame(self, rotationInGlassesFrame):
+        return (self.E_robot2glasses
+                    @ np.append(rotationInGlassesFrame, [1])
+                )[:3]
+    
+    
     def trasformInNewRobotFrame(self, positionInGlassesFrame, robotPositionInGlassesFrame, robotRotationInGlassesFrame):
         return (inv_transformation_matrix(np.hstack((cv2.Rodrigues(np.array(robotRotationInGlassesFrame))[0], robotPositionInGlassesFrame))) 
                     @ np.append(positionInGlassesFrame, [1])
@@ -100,7 +112,7 @@ def generateBoxes(marker_ids, robot_id, rvecs, tvecs):
     for id, box in boxes.items():
         if id != robot_id:
             box.setPositionInRobotFrame(cobot.trasformInRobotFrame(box.positionInGlassesFrame))
-               
+            box.setRotationInRobotFrame(cobot.rotateInRobotFrame(box.rotationInGlassesFrame))
                 
     print("INFO: Boxes generated")
     

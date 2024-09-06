@@ -106,7 +106,7 @@ def main():
                         glasses_position=[0,0,0],
                         target_position=[0,0,0],
                         boxes_position= [box.getPositionInRobotFrame().tolist() for _, box in boxes.items()],
-                        boxes_yaws = [box.rotationInRobotFrame[2] for _, box in box.items() ]
+                        boxes_yaws = [box.rotationInRobotFrame[2] for _, box in boxes.items() ]
                     )
                     
                     socket_client.send_message(dumps_CobotSocketMessage(msg))
