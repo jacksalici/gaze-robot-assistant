@@ -51,8 +51,8 @@ class RobotController:
     def init_boxes(self, boxes_position, boxes_yaws):
         #boxes
         for i, box in enumerate(boxes_position):
-            ret = self.spawn_gazebo_model(f"box{i}", config["box_sdf_path"], box, orientation=yaw_to_quaternion(boxes_yaws[i], 0.0))
-            self.add_rviz_model(f"box{i}", config["box_stl_path"], box, orientation=yaw_to_quaternion(boxes_yaws[i]))
+            ret = self.spawn_gazebo_model(f"box{i}", config["box_sdf_path"], box, orientation=yaw_to_quaternion(boxes_yaws[i], -0.76))
+            self.add_rviz_model(f"box{i}", config["box_stl_path"], box, orientation=yaw_to_quaternion(boxes_yaws[i], 0.76))
 
     def move_to_position(self, position = (0.3, 0, 0.6), orientation=(1e-6, -1.0, 0, 0)):
         """Move the robot's end-effector to a specified position with orientation."""
