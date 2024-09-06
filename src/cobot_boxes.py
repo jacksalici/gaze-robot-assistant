@@ -127,6 +127,7 @@ class CobotSocketMessage: # one message for both action (spawn boxes or trigger 
     target_position: List[float] # goto position for the robot to a box
     glasses_position: List[float] # goto position for the robot when has to bring sth to the person
     boxes_position: List[List[float]] # position of all the boxes, useful just when trigging
+    boxes_yaws: List[float]
     
 def dumps_CobotSocketMessage(msg: CobotSocketMessage) -> str:
     return json.dumps(asdict(msg))

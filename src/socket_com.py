@@ -9,7 +9,7 @@ class Client():
     
     def send_message(self, message):
 
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.SO_REUSEADDR)
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         server_address = (self.server_ip, 12345)
         client_socket.connect(server_address)
@@ -56,7 +56,7 @@ class Server():
                     print(msg)
                     if msg.init:
                         print("ACTION: INIT")
-                        self.robotController.init_boxes(self.trasform_all_coordinates(msg.boxes_position))    
+                        self.robotController.init_boxes(self.trasform_all_coordinates(msg.boxes_position), msg.boxes_yaws)    
 
                     if msg.trigger_robot:
                         print("ACTION: TRIGGER")

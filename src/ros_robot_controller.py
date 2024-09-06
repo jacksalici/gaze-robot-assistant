@@ -11,11 +11,13 @@ import rospy
 from gazebo_msgs.srv import DeleteModel, SpawnModel
 from geometry_msgs.msg import Pose, Point, Quaternion
 
-import toml
+import toml, math
 
 config = toml.load("config.toml")
 
-
+def yaw_to_quaternion(yaw, yaw_shift=1.57):
+    half_yaw = (yaw+yaw_shift) / 2
+    return [0.0, 0.0, math.sin(half_yaw), math.cos(half_yaw)]
 
 class RobotController:
     _instance = None
@@ -46,11 +48,11 @@ class RobotController:
                                                             queue_size=20)
         rospy.sleep(2)  # Allow time for setup
 
-    def init_boxes(self, boxes_position):
+    def init_boxes(self, boxes_position, boxes_yaws):
         #boxes
         for i, box in enumerate(boxes_position):
             ret = self.spawn_gazebo_model(f"box{i}", config["box_sdf_path"], box)
-            self.add_rviz_model(f"box{i}", config["box_stl_path"], box, orientation=[0.0, 0.0, 0.707, 0.707])
+            self.add_rviz_model(f"box{i}", config["box_stl_path"], box, orientation=yaw_to_quaternion(boxes_yaws[i]))
 
     def move_to_position(self, position = (0.3, 0, 0.6), orientation=(1e-6, -1.0, 0, 0)):
         """Move the robot's end-effector to a specified position with orientation."""
@@ -174,7 +176,7 @@ def main():
 
         #controller.open_gripper()
         boxes = [[0.5, -0.25, table_height], [0.5, 0.25, table_height]] 
-        controller.init_boxes(boxes_position=boxes)
+        controller.init_boxes(boxes_position=boxes, [0.0, 0.0])
 
      
 

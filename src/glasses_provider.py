@@ -105,7 +105,8 @@ def main():
                         trigger_robot=0,
                         glasses_position=[0,0,0],
                         target_position=[0,0,0],
-                        boxes_position= [box.getPositionInRobotFrame().tolist() for _, box in boxes.items()]
+                        boxes_position= [box.getPositionInRobotFrame().tolist() for _, box in boxes.items()],
+                        boxes_yaws = [box.rotationInRobotFrame[2] for _, box in box.items() ]
                     )
                     
                     socket_client.send_message(dumps_CobotSocketMessage(msg))
@@ -171,7 +172,9 @@ def main():
                                 trigger_robot=1,
                                 glasses_position=gaze_center_in_robot_frame.tolist(),
                                 target_position=box.getPositionInRobotFrame().tolist(),
-                                boxes_position= [box.getPositionInRobotFrame().tolist() for _, box in boxes.items()]
+                                boxes_position= [box.getPositionInRobotFrame().tolist() for _, box in boxes.items()],
+                                boxes_yaws = [box.rotationInRobotFrame[2] for _, box in box.items() ]
+
                             )
                             os.system(f"say 'cobot triggered toward box {id}' &")
                             socket_client.send_message(dumps_CobotSocketMessage(msg))
