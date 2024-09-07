@@ -23,8 +23,9 @@ class Client():
     
 
 class Server():
-    def __init__(self) -> None:
-        from ros_robot_controller import RobotController
+    def __init__(self, ros_server = True) -> None:
+        self.ros = ros_server
+        
 
 
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -32,7 +33,9 @@ class Server():
         server_socket.listen(3)
         print("INFO: Server started.")
 
-        self.robotController = RobotController()
+        if self.ros:
+            from ros_robot_controller import RobotController
+            self.robotController = RobotController()
 
         while True:
             client_socket, client_address = server_socket.accept()
@@ -56,11 +59,13 @@ class Server():
                     print(msg)
                     if msg.init:
                         print("ACTION: INIT")
-                        self.robotController.init_boxes(self.trasform_all_coordinates(msg.boxes_position), msg.boxes_yaws)    
+                        if self.ros:
+                            self.robotController.init_boxes(self.trasform_all_coordinates(msg.boxes_position), msg.boxes_yaws)    
 
                     if msg.trigger_robot:
                         print("ACTION: TRIGGER")
-                        self.robotController.move_to_position(self.trasform_coordinates(*msg.target_position, trigger= True), orientation=[ -0.4373166, -0.8952134, 0.0749274, -0.0416291 ])
+                        if self.ros:
+                            self.robotController.move_to_position(self.trasform_coordinates(*msg.target_position, trigger= True), orientation=[ -0.4373166, -0.8952134, 0.0749274, -0.0416291 ])
 
                 else:
                     break
