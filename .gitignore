@@ -2,3 +2,7 @@ config.toml
 __pycache__
 imgs
 .idea/
+.catkin_tools/
+build/
+devel/
+logs/
